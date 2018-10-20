@@ -1,22 +1,13 @@
 import json
 import requests
-import ast
-import time
 import Tkinter
-from datetime import timedelta
-from datetime import date
-from datetime import datetime
-
+import tkMessageBox
 def write_to_html(selected):
     for select in selected:
         for key, value in select.iteritems():
             if not isinstance(value, (int, long)):
                 value = value.encode('utf-8')
                 value = value.replace("'", "")
-    #        if key == "creationDate" and value <= 1514789316:
-    #            print "buuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"
-    #        print key, value
-    #    print ""
     
     html_str = list_to_html_table(selected)
     with open("./a.html", "w") as f:
@@ -102,7 +93,7 @@ def list_to_html_table(result):
     return ''.join(html_table(result))
 
 def request_data():
-    response = requests.get("https://devakademi.sahibinden.com/api/stats/findAllWithPagination?pageSize=500&currentPage=0")
+    response = requests.get("https://devakademi.sahibinden.com/api/stats/findAllWithPagination?pageSize=5000&currentPage=0")
     
     response = json.loads(response.text)
     
@@ -112,8 +103,6 @@ def request_data():
          
     for res in response:
         for key, value in res.iteritems():
-    #        if key == "creationDate":
-    #            value = datetime.utcfromtimestamp(value).strftime('%Y-%m-%d %H:%M:%S')
             if key == "eventType" and value == "CLICK":
                 selected.append(res)
                 adId.append(res['adId'])
@@ -121,8 +110,6 @@ def request_data():
     selected.sort()
     selected_table(selected)
     write_to_html(selected)
-
-
 
 def selected_table(selected):
     r=0
@@ -139,32 +126,44 @@ def selected_table(selected):
             if not isinstance(value, (int, long)):
                 value = value.encode('utf-8')
                 value = value.replace("'", "")
-    #        if key == "creationDate" and value <= 1514789316:
-    #            print "buuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu"
-    #        print key, value
-    #    print ""
         r+=1
         c=0
     Tkinter.Button(top, text="Print to HTML", borderwidth=1, command=write_to_html(selected)).grid(row=r,column=c+1)
     top.mainloop()
     
-def find_user(gender):
-#    a=gender.get("1.0","end-1c")
-    print gender
+def find_user():
+    a=gender.get("1.0","end-1c")
+    age=bdate.get("1.0","end-1c")
+    found = []
+    if a == "e" or a == "E":
+        response = requests.get("https://devakademi.sahibinden.com/api/users/findAllByGender?gender=E")
+        response = json.loads(response.text)
+        for res in response:
+            for key, value in res.iteritems():
+                if key == "age" and (value <=int(age)+5 or value > int(age)-5):
+                    found.append(res)
+        selected_table(found)
+    elif a == "k" or a == "K":
+        response = requests.get("https://devakademi.sahibinden.com/api/users/findAllByGender?gender=K")
+        response = json.loads(response.text)
+        for res in response:
+            for key, value in res.iteritems():
+                if key == "age" and (value <=int(age)+5 or value > int(age)-5):
+                    found.append(res)
+        selected_table(found)            
+    else:
+        tkMessageBox.showinfo("Uyarı", "E veya K yazın!")
+        
 
 if __name__ == '__main__':
     main_window = Tkinter.Tk()
     main_window.geometry("800x600")
     table = Tkinter.Button(main_window, text="Get Table", command=request_data).pack()
-#    gender = Tkinter.Text(main_window, width=1, height=1)
-#    gender.pack()
-    var=Tkinter.StringVar()
-    R1 = Tkinter.Radiobutton(main_window, text="Option 1", variable=var, value="E")
-    R1.pack()
-    R2 = Tkinter.Radiobutton(main_window, text="Option 2", variable=var, value="K")
-    R2.pack()
-    
-    similar = Tkinter.Button(main_window, text="Show Similar", command=find_user(var)).pack()
+    gender = Tkinter.Text(main_window, width=1, height=1)
+    gender.pack()
+    bdate = Tkinter.Text(main_window, width=4, height=1)
+    bdate.pack()
+    similar = Tkinter.Button(main_window, text="Show Similar Users", command=find_user).pack()
     
 
     
